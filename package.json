@@ -1,0 +1,32 @@
+{
+  "name": "snifftsx",
+  "version": "1.0.0",
+  "description": "A tool for detecting code smells in React with TypeScript projects",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maykongsn/snifftsx.git"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "smells"
+  ],
+  "author": "Maykon Nunes",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/maykongsn/snifftsx/issues"
+  },
+  "homepage": "https://github.com/maykongsn/snifftsx#readme",
+  "dependencies": {
+    "@swc/core": "1.7.1",
+    "reactsniffer": "1.0.19",
+    "swc": "1.0.11"
+  },
+  "devDependencies": {
+    "typescript": "5.5.4"
+  }
+}
