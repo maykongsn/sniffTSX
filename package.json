@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A tool for detecting code smells in React with TypeScript projects",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -22,6 +23,7 @@
   },
   "homepage": "https://github.com/maykongsn/snifftsx#readme",
   "dependencies": {
+    "@swc/cli": "0.4.0",
     "@swc/core": "1.7.1",
     "reactsniffer": "1.0.19",
     "swc": "1.0.11"
