@@ -7,6 +7,11 @@ type TSXFile = {
 }
 
 async function* readFiles(dirname: string): AsyncGenerator<TSXFile> {
+  if(!(await fs.access(dirname).then(() => true).catch(() => false))) {
+    console.log("Please provide a valid directory");
+    process.exit(0);
+  }
+
   const directoryEntries = await fs.readdir(dirname, { withFileTypes: true });
 
   for(const directoryEntry of directoryEntries) {
