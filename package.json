@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "npx swc lib -d dist",
-    "start": "node dist/lib/index.js docs/code-examples",
-    "start:dev": "node -r @swc-node/register lib/index.ts docs/code-examples",
+    "start": "node dist/lib/index.js test/components",
+    "start:dev": "node -r @swc-node/register lib/index.ts test/components",
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },
