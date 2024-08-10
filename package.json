@@ -4,9 +4,9 @@
   "description": "A tool for detecting code smells in React with TypeScript projects",
   "main": "index.js",
   "scripts": {
-    "build": "npx swc lib -d dist",
+    "build": "tsc --outDir dist",
     "start": "node dist/lib/index.js test/components",
-    "start:dev": "node -r @swc-node/register lib/index.ts test/components",
+    "start:dev": "tsx lib/index.ts test/components",
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },
@@ -26,13 +26,11 @@
   },
   "homepage": "https://github.com/maykongsn/snifftsx#readme",
   "dependencies": {
-    "@swc/cli": "0.4.0",
-    "@swc/core": "1.7.1",
-    "reactsniffer": "1.0.19",
-    "swc": "1.0.11"
+    "@babel/parser": "7.25.3",
+    "reactsniffer": "1.0.19"
   },
   "devDependencies": {
-    "@swc-node/register": "1.10.9",
+    "tsx": "4.17.0",
     "typescript": "5.5.4",
     "vitest": "2.0.5"
   }
