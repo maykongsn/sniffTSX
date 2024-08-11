@@ -1,10 +1,8 @@
 import { promises as fs } from "fs";
 import path from "path";
-
-type TSXFile = {
-  path: string;
-  content: string;
-}
+import { TSXFile } from "../types";
+import { parseAST } from "./parser";
+import { ParseResult } from "@babel/parser";
 
 async function* readFiles(dirname: string): AsyncGenerator<TSXFile> {
   if(!(await fs.access(dirname).then(() => true).catch(() => false))) {
@@ -29,10 +27,8 @@ async function* readFiles(dirname: string): AsyncGenerator<TSXFile> {
 }
 
 export async function processFiles(path: string) {
-  const files: TSXFile[] = [];
   for await (const file of readFiles(path)) {
-    files.push(file);
+    const ast = parseAST(file);
+    console.log(ast);
   }
-
-  return files;
 }
