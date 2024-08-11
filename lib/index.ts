@@ -17,8 +17,6 @@ const analyze = async (pathToDir: string) =>
     .catch((error) => console.error(error))
     .then(() => 
       processFiles(pathToDir)
-        .then((output) => console.log(output))
-        .catch((error) => console.error(error))
     );
 
 analyze(pathToDir);
