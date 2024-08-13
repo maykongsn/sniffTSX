@@ -2,3 +2,9 @@ export type TSXFile = {
   path: string;
   content: string;
 }
+
+export type SourceLocation = {
+  start?: number;
+  end?: number;
+  filename?: string;
+}

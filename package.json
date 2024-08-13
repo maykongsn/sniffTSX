@@ -27,9 +27,12 @@
   "homepage": "https://github.com/maykongsn/snifftsx#readme",
   "dependencies": {
     "@babel/parser": "7.25.3",
+    "@babel/traverse": "7.25.3",
     "reactsniffer": "1.0.19"
   },
   "devDependencies": {
+    "@types/babel__traverse": "7.20.6",
+    "@types/babel-types": "7.0.15",
     "tsx": "4.17.0",
     "typescript": "5.5.4",
     "vitest": "2.0.5"
