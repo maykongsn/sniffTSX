@@ -3,6 +3,7 @@ import path from "path";
 import { TSXFile } from "../types";
 import { parseAST } from "./parser";
 import { ParseResult } from "@babel/parser";
+import { anyType } from "../smells/any-type";
 
 async function* readFiles(dirname: string): AsyncGenerator<TSXFile> {
   if(!(await fs.access(dirname).then(() => true).catch(() => false))) {
@@ -29,6 +30,8 @@ async function* readFiles(dirname: string): AsyncGenerator<TSXFile> {
 export async function processFiles(path: string) {
   for await (const file of readFiles(path)) {
     const ast = parseAST(file);
-    console.log(ast);
+
+    const result = anyType(ast)
+    console.log(result);
   }
 }
