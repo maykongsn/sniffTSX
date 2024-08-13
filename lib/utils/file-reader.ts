@@ -2,8 +2,9 @@ import { promises as fs } from "fs";
 import path from "path";
 import { TSXFile } from "../types";
 import { parseAST } from "./parser";
-import { ParseResult } from "@babel/parser";
+
 import { anyType } from "../smells/any-type";
+import { nonNullAssertions } from "../smells/non-null-assertions";
 
 async function* readFiles(dirname: string): AsyncGenerator<TSXFile> {
   if(!(await fs.access(dirname).then(() => true).catch(() => false))) {
@@ -31,7 +32,9 @@ export async function processFiles(path: string) {
   for await (const file of readFiles(path)) {
     const ast = parseAST(file);
 
-    const result = anyType(ast)
-    console.log(result);
+    const anyTypeSmells = anyType(ast);
+    const nonNullSmells = nonNullAssertions(ast);
+    console.log(anyTypeSmells);
+    console.log(nonNullSmells);
   }
 }
