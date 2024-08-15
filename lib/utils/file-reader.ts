@@ -5,6 +5,7 @@ import { parseAST } from "./parser";
 
 import { anyType } from "../smells/any-type";
 import { nonNullAssertions } from "../smells/non-null-assertions";
+import { missingUnionTypeAbstraction } from "../smells/missing-union-type-abstraction";
 
 async function* readFiles(dirname: string): AsyncGenerator<TSXFile> {
   if(!(await fs.access(dirname).then(() => true).catch(() => false))) {
@@ -34,7 +35,9 @@ export async function processFiles(path: string) {
 
     const anyTypeSmells = anyType(ast);
     const nonNullSmells = nonNullAssertions(ast);
+    const missingUnionSmells = missingUnionTypeAbstraction(ast);
     console.log(anyTypeSmells);
     console.log(nonNullSmells);
+    console.log(missingUnionSmells);
   }
 }
