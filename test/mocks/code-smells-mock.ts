@@ -38,3 +38,19 @@ export const mockNonNullAssertions = {
     '  )\n' +
     '}'
 }
+
+export const mockMissingUnionTypeAbstraction = {
+  path: 'test/components/MissingUnion.tsx',
+  content: 'const ShapeComponent = () => {\n' +
+    '  const [current, setCurrent] = \n' +
+    "    useState<'circle' | 'square'>('circle');\n" +
+    '\n' +
+    "  function changeShape(type: 'circle' | 'square') {\n" +
+    '    // ...\n' +
+    '  }\n' +
+    '\n' +
+    "  function calculateArea(type: 'circle' | 'square') {\n" +
+    '    // ...\n' +
+    '  }\n' +
+    '}'
+}
