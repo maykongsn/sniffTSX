@@ -2,10 +2,31 @@ import { ParseResult } from "@babel/parser";
 import traverse from "@babel/traverse";
 import { File } from "@babel/types";
 import { SourceLocation } from "../types";
+import { TSType } from "@babel/types";
+import { TSLiteralType, TSTypeReference } from "babel-types";
 
 type Union = {
   members: string[];
 } & SourceLocation;
+
+const findTypeNode = (typeNodes: TSType[]) =>
+  typeNodes.find((typeNode) =>
+    typeNode.literal ?? (typeNode.type === "TSTypeReference" ? typeNode.typeName : typeNode)
+  )?.loc
+
+// TODO: correct types for literal and reference nodes
+const typeLiteralHandler = (typeNode: TSType): string => typeNode.literal.value;  
+const typeReferenceHandler = (typeNode: TSType): string => typeNode.typeName.name;
+const defaultHandler = (typeNode: TSType) => typeNode.type;
+
+const handlers: { [key: string]: (typeNode: TSType) => string } = {
+  TSTypeReference: typeReferenceHandler,
+  TSLiteralType: typeLiteralHandler,
+};
+
+const mapMember = (typeNode: TSType) => {
+  return (handlers[typeNode.type] ?? defaultHandler)(typeNode);
+}
 
 export const missingUnionTypeAbstraction = (ast: ParseResult<File>) => {
   const unionTypes: Union[] = [];
@@ -14,35 +35,13 @@ export const missingUnionTypeAbstraction = (ast: ParseResult<File>) => {
 
   traverse(ast, {
     TSUnionType(path) {
+      const loc = findTypeNode(path.node.types);
+
       unionTypes.push({
-        members: path.node.types.map((typeNode) => {
-          if (typeNode.literal) {
-            return typeNode.literal.value
-          }
-
-          return typeNode.type === "TSTypeReference" ? typeNode.typeName.name : typeNode.type
-        }),
-        start: path.node.types.find((typeNode) => {
-          if(typeNode.literal) {
-            return typeNode.literal.loc.start.line;
-          }
-
-          return typeNode.type === "TSTypeReference" ? typeNode.typeName.loc?.start.line : typeNode.loc?.start.line;
-        })?.loc?.start.line,
-        end: path.node.types.find((typeNode) => {
-          if(typeNode.literal) {
-            return typeNode.literal.loc.end.line;
-          }
-
-          return typeNode.type === "TSTypeReference" ? typeNode.typeName.loc?.end.line : typeNode.loc?.end.line;
-        })?.loc?.start.line,
-        filename: path.node.types.find((typeNode) => {
-          if(typeNode.literal) {
-            return typeNode.literal.loc.filename;
-          }
-
-          return typeNode.type === "TSTypeReference" ? typeNode.typeName.loc?.filename : typeNode.loc?.filename;
-        })?.loc?.filename
+        members: path.node.types.map(mapMember),
+        start: loc?.start.line,
+        end: loc?.end.line,
+        filename: loc?.filename
       });
     }
   });
