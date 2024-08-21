@@ -73,3 +73,22 @@ export const mockEnumImplicitValues = {
     '  )\n' +
     '}'
 }
+
+export const mockMultipleBooleansForState = {
+  path: 'test/components/MultipleBooleans.tsx',
+  content: 'import React from "react";\n' +
+    'import { useState } from "react";\n' +
+    '\n' +
+    'function MultipleBooleans() { \n' +
+    '  const [isOpen, setIsOpen] = useState(false);\n' +
+    '  const [isLoading, setIsLoading] = useState(false);\n' +
+    '  const [hasError, setHasError] = useState(false);\n' +
+    '  const [isEditing, setIsEditing] = useState(false);\n' +
+    '  const [isSaving, setIsSaving] = useState(false);\n' +
+    '  const [isDeleting, setIsDeleting] = useState(false);\n' +
+    '\n' +
+    '  return (\n' +
+    '    <div></div>\n' +
+    '  )\n' +
+    '}'
+}
