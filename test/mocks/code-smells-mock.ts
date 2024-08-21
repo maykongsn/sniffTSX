@@ -54,3 +54,22 @@ export const mockMissingUnionTypeAbstraction = {
     '  }\n' +
     '}'
 }
+
+export const mockEnumImplicitValues = {
+  path: 'test/components/Enum.tsx',
+  content: 'import React from "react";\n' +
+    '\n' +
+    'enum Suit {\n' +
+    '  Hearts,\n' +
+    '  Diamonds,\n' +
+    '  Clubs,\n' +
+    '  Spades\n' +
+    '}\n' +
+    '\n' +
+    'export function Component() {\n' +
+    '  return(\n' +
+    '    <div>\n' +
+    '    </div>\n' +
+    '  )\n' +
+    '}'
+}

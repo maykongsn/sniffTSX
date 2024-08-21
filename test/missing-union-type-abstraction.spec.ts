@@ -4,7 +4,7 @@ import { mockMissingUnionTypeAbstraction } from "./mocks/code-smells-mock";
 import { missingUnionTypeAbstraction } from "../lib/smells/missing-union-type-abstraction";
 
 describe("Missing Union Type Abstraction", () => {
-  test("should return a occurrence of Missing Union Type Abstraction", () => {
+  test("should return an occurrence of Missing Union Type Abstraction", () => {
     const expectedOutput = [
       {
         members: [ 'circle', 'square' ],
