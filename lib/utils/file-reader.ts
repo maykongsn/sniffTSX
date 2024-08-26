@@ -8,6 +8,7 @@ import { nonNullAssertions } from "../smells/non-null-assertions";
 import { missingUnionTypeAbstraction } from "../smells/missing-union-type-abstraction";
 import { enumImplicitValues } from "../smells/enum-implicit-values";
 import { multipleBooleansForState } from "../smells/multiple-booleans-for-state";
+import { overlyFlexibleProps } from "../smells/overly-flexible-props";
 
 async function* readFiles(dirname: string): AsyncGenerator<TSXFile> {
   if(!(await fs.access(dirname).then(() => true).catch(() => false))) {
@@ -40,10 +41,12 @@ export async function processFiles(path: string) {
     const missingUnionSmells = missingUnionTypeAbstraction(ast);
     const enumImplicitSmells = enumImplicitValues(ast);
     const multipleBooleansSmells = multipleBooleansForState(ast);
+    const overlyFlexibleSmells = overlyFlexibleProps(ast);    
     console.log(anyTypeSmells);
     console.log(nonNullSmells);
     console.log(missingUnionSmells);
     console.log(enumImplicitSmells);
     console.log(multipleBooleansSmells);
+    console.log(overlyFlexibleSmells)
   }
 }
