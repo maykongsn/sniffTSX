@@ -1,42 +1,58 @@
 import { ParseResult } from "@babel/parser";
-import traverse from "@babel/traverse";
-import { File, TSType, FunctionDeclaration, ArrowFunctionExpression } from "@babel/types";
+import traverse, { NodePath } from "@babel/traverse";
+import { File, TSType, Identifier, Pattern, RestElement, ArrowFunctionExpression, FunctionDeclaration } from "@babel/types";
 import { SourceLocation } from "../types";
 
-const isPropDefinitionOverlyFlexible = (
-  node: ArrowFunctionExpression | FunctionDeclaration, 
-  definition: string
-) => {
-  if (!definition) return false;
+const propsDefinitions: string[] = [];
+const components: SourceLocation[] = [];
 
-  const param = node.params[0];
-  return param?.typeAnnotation?.typeAnnotation?.typeName?.name === definition;
+const isFlexibleObject = (typeAnnotation: TSType) => {
+  if (typeAnnotation.type === "TSIntersectionType") {
+    return typeAnnotation.types.some((node: TSType) =>
+      node.type === "TSTypeReference" &&
+      node.typeName.name === "Record" &&
+      node.typeParameters?.params[0].type === "TSStringKeyword" &&
+      node.typeParameters?.params[1].type === "TSUnknownKeyword"
+    );
+  }
+
+  return typeAnnotation.type === "TSTypeReference" &&
+    typeAnnotation.typeName.name === "Record" &&
+    typeAnnotation.typeParameters?.params[0].type === "TSStringKeyword" &&
+    typeAnnotation.typeParameters?.params[1].type === "TSUnknownKeyword";
+};
+
+const isComponentPropsFlexible = (
+  param: Identifier | Pattern | RestElement
+) => {
+  const typeName = param?.typeAnnotation?.typeAnnotation.typeName?.name;
+  return typeName && propsDefinitions.includes(typeName);
+}
+
+const usesPropsFlexibleDirectly = (param: Identifier | Pattern | RestElement) => {
+  const typeAnnotation = param?.typeAnnotation?.typeAnnotation;
+  return typeAnnotation && isFlexibleObject(typeAnnotation);
+}
+
+const checkComponentPropsUsage = (
+  path: NodePath<FunctionDeclaration | ArrowFunctionExpression>
+) => {
+  if (
+    isComponentPropsFlexible(path.node.params[0]) || 
+    usesPropsFlexibleDirectly(path.node.params[0])
+  ) {
+    components.push({
+      start: path.node.loc?.start.line,
+      end: path.node.loc?.end.line,
+      filename: path.node.loc?.filename
+    });
+  }
 }
 
 export const overlyFlexibleProps = (ast: ParseResult<File>) => {
-  const propsDefinitions: string[] = [];
-  const components: SourceLocation[] = [];
-
   traverse(ast, {
     TSTypeAliasDeclaration(path) {
-      if (
-        path.node.typeAnnotation.type === "TSTypeReference" &&
-        path.node.typeAnnotation.typeName.name === "Record" &&
-        path.node.typeAnnotation.typeParameters?.params[0].type === "TSStringKeyword" &&
-        path.node.typeAnnotation.typeParameters?.params[1].type === "TSUnknownKeyword"
-      ) {
-        propsDefinitions.push(path.node.id.name);
-      }
-
-      if (
-        path.node.typeAnnotation.type === "TSIntersectionType" &&
-        path.node.typeAnnotation.types.some((node: TSType) =>
-          node.type === "TSTypeReference" &&
-          node.typeName.name === "Record" &&
-          node.typeParameters?.params[0].type === "TSStringKeyword" &&
-          node.typeParameters?.params[1].type === "TSUnknownKeyword"
-        )
-      ) {
+      if (isFlexibleObject(path.node.typeAnnotation)) {
         propsDefinitions.push(path.node.id.name);
       }
     },
@@ -54,90 +70,8 @@ export const overlyFlexibleProps = (ast: ParseResult<File>) => {
       }
     },
 
-    ArrowFunctionExpression(path) {
-      const foundTypeAlias = propsDefinitions.find((definition) => isPropDefinitionOverlyFlexible(path.node, definition));
-
-      if (foundTypeAlias) {
-        components.push({
-          start: path.node.loc?.start.line,
-          end: path.node.loc?.end.line,
-          filename: path.node.loc?.filename
-        });
-      }
-
-      path.node.params.forEach((param) => {
-        if (
-          param.typeAnnotation?.typeAnnotation.type === "TSTypeReference" &&
-          param.typeAnnotation?.typeAnnotation.typeName.name === "Record" &&
-          param.typeAnnotation?.typeAnnotation.typeParameters?.params[0].type === "TSStringKeyword" &&
-          param.typeAnnotation?.typeAnnotation.typeParameters?.params[1].type === "TSUnknownKeyword"
-        ) {
-          components.push({
-            start: path.node.loc?.start.line,
-            end: path.node.loc?.end.line,
-            filename: path.node.loc?.filename
-          });
-        }
-        if (
-          param.typeAnnotation?.typeAnnotation.type === "TSIntersectionType" &&
-          param.typeAnnotation?.typeAnnotation.types.some((node: TSType) =>
-            node.type === "TSTypeReference" &&
-            node.typeName.name === "Record" &&
-            node.typeParameters?.params[0].type === "TSStringKeyword" &&
-            node.typeParameters?.params[1].type === "TSUnknownKeyword"
-          )
-        ) {
-          components.push({
-            start: path.node.loc?.start.line,
-            end: path.node.loc?.end.line,
-            filename: path.node.loc?.filename
-          });
-        }
-      });
-    },
-
-    FunctionDeclaration(path) {
-      const foundTypeAlias = propsDefinitions.find((definition) => isPropDefinitionOverlyFlexible(path.node, definition));
-
-      if (foundTypeAlias) {
-        components.push({
-          start: path.node.loc?.start.line,
-          end: path.node.loc?.end.line,
-          filename: path.node.loc?.filename
-        });
-      }
-
-      path.node.params.forEach((param) => {
-        if (
-          param.typeAnnotation?.typeAnnotation.type === "TSTypeReference" &&
-          param.typeAnnotation?.typeAnnotation.typeName.name === "Record" &&
-          param.typeAnnotation?.typeAnnotation.typeParameters?.params[0].type === "TSStringKeyword" &&
-          param.typeAnnotation?.typeAnnotation.typeParameters?.params[1].type === "TSUnknownKeyword"
-        ) {
-          components.push({
-            start: path.node.loc?.start.line,
-            end: path.node.loc?.end.line,
-            filename: path.node.loc?.filename
-          });
-        }
-
-        if (
-          param.typeAnnotation?.typeAnnotation.type === "TSIntersectionType" &&
-          param.typeAnnotation?.typeAnnotation.types.some((node: TSType) =>
-            node.type === "TSTypeReference" &&
-            node.typeName.name === "Record" &&
-            node.typeParameters?.params[0].type === "TSStringKeyword" &&
-            node.typeParameters?.params[1].type === "TSUnknownKeyword"
-          )
-        ) {
-          components.push({
-            start: path.node.loc?.start.line,
-            end: path.node.loc?.end.line,
-            filename: path.node.loc?.filename
-          });
-        }
-      });
-    },
+    FunctionDeclaration: checkComponentPropsUsage,
+    ArrowFunctionExpression: checkComponentPropsUsage,
   });
 
   return components;
