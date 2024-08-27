@@ -92,3 +92,27 @@ export const mockMultipleBooleansForState = {
     '  )\n' +
     '}'
 }
+
+export const mockOverlyFlexibleProps = {
+  path: 'test/components/OverlyFlexible.tsx',
+  content: "import React from 'react';\n" +
+    '\n' +
+    'type InputProps = Record<string, unknown>\n' +
+    '\n' +
+    'interface ButtonProps extends Record<string, unknown> {\n' +
+    '  label: string;\n' +
+    '}\n' +
+    '\n' +
+    'const Input = ({ label, ...rest }: InputProps) => {\n' +
+    '  return (\n' +
+    '    <>\n' +
+    '      <label>{label}</label>\n' +
+    '      <input name={label} {...rest} />\n' +
+    '    </>\n' +
+    '  )\n' +
+    '}\n' +
+    '\n' +
+    'function Button({ label, ...rest }: ButtonProps) {}\n' +
+    '\n' +
+    'function Component(props: { name: string } & Record<string, unknown>) {}'
+}
