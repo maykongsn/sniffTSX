@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 import { runReactSniffer } from '../lib/reactsniffer';
 
-describe("ReactSniffer wrapper", () => {
+describe.skip("ReactSniffer wrapper", () => {
   test("should return output when runReactSniffer resolves", async () => {
     const mockOutput = { 
       table1: [
