@@ -38,7 +38,7 @@ const checkComponentPropsUsage = (
   components: SourceLocation[]
 ) => {
   if (
-    isComponentPropsFlexible(path.node.params[0], propsDefinitions) || 
+    isComponentPropsFlexible(path.node.params[0], propsDefinitions) ||
     usesPropsFlexibleDirectly(path.node.params[0])
   ) {
     components.push({
@@ -49,40 +49,38 @@ const checkComponentPropsUsage = (
   }
 }
 
-export const overlyFlexibleProps = (ast: ParseResult<File>): Promise<SourceLocation[]> => {
-  return new Promise((resolve) => {
-    const propsDefinitions: string[] = [];
-    const components: SourceLocation[] = [];
-    
-    traverse(ast, {
-      TSTypeAliasDeclaration(path) {
-        if (isFlexibleObject(path.node.typeAnnotation)) {
-          propsDefinitions.push(path.node.id.name);
-        }
-      },
-  
-      TSInterfaceDeclaration(path) {
-        if (
-          path.node.extends?.some((extend) =>
-            extend.expression.type === "Identifier" &&
-            extend.expression.name === "Record" &&
-            extend.typeParameters?.params[0].type === "TSStringKeyword" &&
-            extend.typeParameters?.params[1].type === "TSUnknownKeyword"
-          )
-        ) {
-          propsDefinitions.push(path.node.id.name);
-        }
-      },
-  
-      FunctionDeclaration(path) {
-        checkComponentPropsUsage(path, propsDefinitions, components);
-      },
+export const overlyFlexibleProps = (ast: ParseResult<File>) => {
+  const propsDefinitions: string[] = [];
+  const components: SourceLocation[] = [];
 
-      ArrowFunctionExpression(path){
-        checkComponentPropsUsage(path, propsDefinitions, components);
-      },
-    });
-  
-    resolve(components);
-  })
+  traverse(ast, {
+    TSTypeAliasDeclaration(path) {
+      if (isFlexibleObject(path.node.typeAnnotation)) {
+        propsDefinitions.push(path.node.id.name);
+      }
+    },
+
+    TSInterfaceDeclaration(path) {
+      if (
+        path.node.extends?.some((extend) =>
+          extend.expression.type === "Identifier" &&
+          extend.expression.name === "Record" &&
+          extend.typeParameters?.params[0].type === "TSStringKeyword" &&
+          extend.typeParameters?.params[1].type === "TSUnknownKeyword"
+        )
+      ) {
+        propsDefinitions.push(path.node.id.name);
+      }
+    },
+
+    FunctionDeclaration(path) {
+      checkComponentPropsUsage(path, propsDefinitions, components);
+    },
+
+    ArrowFunctionExpression(path) {
+      checkComponentPropsUsage(path, propsDefinitions, components);
+    },
+  });
+
+  return components;
 }
