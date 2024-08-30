@@ -29,34 +29,37 @@ const mapMember = (typeNode: TSType) => {
 }
 
 export const missingUnionTypeAbstraction = (ast: ParseResult<File>) => {
-  const unionTypes: Union[] = [];
-
-  const membersCount: Record<string, number> = {};
-
-  traverse(ast, {
-    TSUnionType(path) {
-      const loc = findTypeNode(path.node.types);
-
-      unionTypes.push({
-        members: path.node.types.map(mapMember),
-        start: loc?.start.line,
-        end: loc?.end.line,
-        filename: loc?.filename
-      });
+  return new Promise((resolve) => {
+    const unionTypes: Union[] = [];
+  
+    const membersCount: Record<string, number> = {};
+  
+    traverse(ast, {
+      TSUnionType(path) {
+        const loc = findTypeNode(path.node.types);
+  
+        unionTypes.push({
+          members: path.node.types.map(mapMember),
+          start: loc?.start.line,
+          end: loc?.end.line,
+          filename: loc?.filename
+        });
+      }
+    });
+  
+    if (unionTypes.length >= 3) {
+      unionTypes.forEach((union) => {
+        const normalizedMembers = union.members.sort();
+        const key = normalizedMembers.join("|");
+        membersCount[key] = (membersCount[key] ?? 0) + 1;
+      })
+  
+      const hasThreeOrMoreDuplicatedUnions = Object.values(membersCount).some(count => count >= 3)
+  
+      resolve(hasThreeOrMoreDuplicatedUnions ? unionTypes : []);
     }
-  });
+  
+    resolve([]);
 
-  if (unionTypes.length >= 3) {
-    unionTypes.forEach((union) => {
-      const normalizedMembers = union.members.sort();
-      const key = normalizedMembers.join("|");
-      membersCount[key] = (membersCount[key] ?? 0) + 1;
-    })
-
-    const hasThreeOrMoreDuplicatedUnions = Object.values(membersCount).some(count => count >= 3)
-
-    return hasThreeOrMoreDuplicatedUnions ? unionTypes : [];
-  }
-
-  return [];
+  })
 }
