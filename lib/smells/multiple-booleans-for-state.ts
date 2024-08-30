@@ -3,7 +3,7 @@ import traverse from "@babel/traverse";
 import { File, isBooleanLiteral } from "@babel/types";
 import { SourceLocation } from "../types";
 
-export const multipleBooleansForState = (ast: ParseResult<File>) => {
+export const multipleBooleansForState = (ast: ParseResult<File>): Promise<SourceLocation[]> => {
   return new Promise((resolve) => {
     const states: SourceLocation[] = [];
   

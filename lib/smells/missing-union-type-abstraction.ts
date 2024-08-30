@@ -3,7 +3,6 @@ import traverse from "@babel/traverse";
 import { File } from "@babel/types";
 import { SourceLocation } from "../types";
 import { TSType } from "@babel/types";
-import { TSLiteralType, TSTypeReference } from "babel-types";
 
 type Union = {
   members: string[];
@@ -28,7 +27,7 @@ const mapMember = (typeNode: TSType) => {
   return (handlers[typeNode.type] ?? defaultHandler)(typeNode);
 }
 
-export const missingUnionTypeAbstraction = (ast: ParseResult<File>) => {
+export const missingUnionTypeAbstraction = (ast: ParseResult<File>): Promise<SourceLocation[]> => {
   return new Promise((resolve) => {
     const unionTypes: Union[] = [];
   

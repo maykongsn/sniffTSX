@@ -3,7 +3,7 @@ import { File } from "@babel/types";
 import traverse from "@babel/traverse";
 import { SourceLocation } from "../types";
 
-export const nonNullAssertions = (ast: ParseResult<File>) => {
+export const nonNullAssertions = (ast: ParseResult<File>): Promise<SourceLocation[]> => {
   return new Promise((resolve) => {
     const locations: SourceLocation[] = [];
   

@@ -49,7 +49,7 @@ const checkComponentPropsUsage = (
   }
 }
 
-export const overlyFlexibleProps = (ast: ParseResult<File>) => {
+export const overlyFlexibleProps = (ast: ParseResult<File>): Promise<SourceLocation[]> => {
   return new Promise((resolve) => {
     const propsDefinitions: string[] = [];
     const components: SourceLocation[] = [];
