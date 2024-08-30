@@ -1,5 +1,5 @@
+import { analyze } from "./analyzer";
 import { runReactSniffer } from "./reactsniffer";
-import { processFiles } from "./utils/file-reader";
 
 const pathToDir = process.argv[2];
 
@@ -8,7 +8,7 @@ if(!pathToDir) {
   process.exit(1);
 }
 
-const analyze = async (pathToDir: string) => 
+const run = async (pathToDir: string) => 
   await runReactSniffer(pathToDir)
     .then((output) => {
       console.log(output.table1)
@@ -16,7 +16,7 @@ const analyze = async (pathToDir: string) =>
     })
     .catch((error) => console.error(error))
     .then(() => 
-      processFiles(pathToDir)
+      analyze(pathToDir)
     );
 
-analyze(pathToDir);
+run(pathToDir);

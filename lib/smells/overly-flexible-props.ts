@@ -3,9 +3,6 @@ import traverse, { NodePath } from "@babel/traverse";
 import { File, TSType, Identifier, Pattern, RestElement, ArrowFunctionExpression, FunctionDeclaration } from "@babel/types";
 import { SourceLocation } from "../types";
 
-const propsDefinitions: string[] = [];
-const components: SourceLocation[] = [];
-
 const isFlexibleObject = (typeAnnotation: TSType) => {
   if (typeAnnotation.type === "TSIntersectionType") {
     return typeAnnotation.types.some((node: TSType) =>
@@ -23,7 +20,8 @@ const isFlexibleObject = (typeAnnotation: TSType) => {
 };
 
 const isComponentPropsFlexible = (
-  param: Identifier | Pattern | RestElement
+  param: Identifier | Pattern | RestElement,
+  propsDefinitions: string[]
 ) => {
   const typeName = param?.typeAnnotation?.typeAnnotation.typeName?.name;
   return typeName && propsDefinitions.includes(typeName);
@@ -35,10 +33,12 @@ const usesPropsFlexibleDirectly = (param: Identifier | Pattern | RestElement) =>
 }
 
 const checkComponentPropsUsage = (
-  path: NodePath<FunctionDeclaration | ArrowFunctionExpression>
+  path: NodePath<FunctionDeclaration | ArrowFunctionExpression>,
+  propsDefinitions: string[],
+  components: SourceLocation[]
 ) => {
   if (
-    isComponentPropsFlexible(path.node.params[0]) || 
+    isComponentPropsFlexible(path.node.params[0], propsDefinitions) || 
     usesPropsFlexibleDirectly(path.node.params[0])
   ) {
     components.push({
@@ -50,29 +50,39 @@ const checkComponentPropsUsage = (
 }
 
 export const overlyFlexibleProps = (ast: ParseResult<File>) => {
-  traverse(ast, {
-    TSTypeAliasDeclaration(path) {
-      if (isFlexibleObject(path.node.typeAnnotation)) {
-        propsDefinitions.push(path.node.id.name);
-      }
-    },
+  return new Promise((resolve) => {
+    const propsDefinitions: string[] = [];
+    const components: SourceLocation[] = [];
+    
+    traverse(ast, {
+      TSTypeAliasDeclaration(path) {
+        if (isFlexibleObject(path.node.typeAnnotation)) {
+          propsDefinitions.push(path.node.id.name);
+        }
+      },
+  
+      TSInterfaceDeclaration(path) {
+        if (
+          path.node.extends?.some((extend) =>
+            extend.expression.type === "Identifier" &&
+            extend.expression.name === "Record" &&
+            extend.typeParameters?.params[0].type === "TSStringKeyword" &&
+            extend.typeParameters?.params[1].type === "TSUnknownKeyword"
+          )
+        ) {
+          propsDefinitions.push(path.node.id.name);
+        }
+      },
+  
+      FunctionDeclaration(path) {
+        checkComponentPropsUsage(path, propsDefinitions, components);
+      },
 
-    TSInterfaceDeclaration(path) {
-      if (
-        path.node.extends?.some((extend) =>
-          extend.expression.type === "Identifier" &&
-          extend.expression.name === "Record" &&
-          extend.typeParameters?.params[0].type === "TSStringKeyword" &&
-          extend.typeParameters?.params[1].type === "TSUnknownKeyword"
-        )
-      ) {
-        propsDefinitions.push(path.node.id.name);
-      }
-    },
-
-    FunctionDeclaration: checkComponentPropsUsage,
-    ArrowFunctionExpression: checkComponentPropsUsage,
-  });
-
-  return components;
+      ArrowFunctionExpression(path){
+        checkComponentPropsUsage(path, propsDefinitions, components);
+      },
+    });
+  
+    resolve(components);
+  })
 }
