@@ -15,8 +15,9 @@ const run = async (pathToDir: string) =>
       console.log(output.table2)
     })
     .catch((error) => console.error(error))
-    .then(() => 
-      analyze(pathToDir)
+    .then(async () => {
+        console.log(await analyze(pathToDir))
+      }
     );
 
 run(pathToDir);
