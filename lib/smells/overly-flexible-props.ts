@@ -43,8 +43,7 @@ const checkComponentPropsUsage = (
   ) {
     components.push({
       start: path.node.loc?.start.line,
-      end: path.node.loc?.end.line,
-      filename: path.node.loc?.filename
+      end: path.node.loc?.end.line
     });
   }
 }

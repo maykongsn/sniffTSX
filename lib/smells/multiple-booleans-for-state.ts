@@ -16,8 +16,7 @@ export const multipleBooleansForState = (ast: ParseResult<File>) => {
       ) {
         states.push({
           start: path.node.callee.loc?.start.line,
-          end: path.node.callee.loc?.end.line,
-          filename: path.node.callee.loc?.filename
+          end: path.node.callee.loc?.end.line
         });
       }
     }

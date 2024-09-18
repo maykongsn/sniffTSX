@@ -6,5 +6,4 @@ export type TSXFile = {
 export type SourceLocation = {
   start?: number;
   end?: number;
-  filename?: string;
 }

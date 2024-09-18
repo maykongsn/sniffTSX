@@ -39,8 +39,7 @@ export const missingUnionTypeAbstraction = (ast: ParseResult<File>) => {
       unionTypes.push({
         members: path.node.types.map(mapMember),
         start: loc?.start.line,
-        end: loc?.end.line,
-        filename: loc?.filename
+        end: loc?.end.line
       });
     }
   });
