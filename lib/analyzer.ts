@@ -20,12 +20,7 @@ export type AnalysisOutput = {
 export type AnalyzerFunction<T> = (ast: ParseResult<File>) => T;
 
 type Analyzers = {
-  anyType: AnalyzerFunction<SourceLocation[]>;
-  nonNullAssertions: AnalyzerFunction<SourceLocation[]>;
-  missingUnionTypeAbstraction: AnalyzerFunction<SourceLocation[]>;
-  enumImplicitValues: AnalyzerFunction<SourceLocation[]>;
-  multipleBooleansForState: AnalyzerFunction<SourceLocation[]>;
-  overlyFlexibleProps: AnalyzerFunction<SourceLocation[]>
+  [key: string]: AnalyzerFunction<SourceLocation[]>;
 }
 
 export const analyzeFile = (file: TSXFile): AnalysisOutput => {
