@@ -1,35 +1,93 @@
 import { ParseResult } from "@babel/parser";
 import traverse, { NodePath } from "@babel/traverse";
-import { File, TSType, Identifier, Pattern, RestElement, ArrowFunctionExpression, FunctionDeclaration } from "@babel/types";
+import { 
+  File, 
+  TSType, 
+  Identifier, 
+  Pattern, 
+  RestElement, 
+  ArrowFunctionExpression, 
+  FunctionDeclaration, 
+  isIdentifier, 
+  isTSQualifiedName, 
+  TypeAnnotation, 
+  TSTypeAnnotation, 
+  Noop 
+} from "@babel/types";
 import { SourceLocation } from "../types";
 
 const isFlexibleObject = (typeAnnotation: TSType) => {
   if (typeAnnotation.type === "TSIntersectionType") {
-    return typeAnnotation.types.some((node: TSType) =>
-      node.type === "TSTypeReference" &&
-      node.typeName.name === "Record" &&
-      node.typeParameters?.params[0].type === "TSStringKeyword" &&
-      node.typeParameters?.params[1].type === "TSUnknownKeyword"
+    return typeAnnotation.types.some(
+      (node: TSType) =>
+        node.type === "TSTypeReference" &&
+        (isIdentifier(node.typeName)
+          ? node.typeName.name === "Record"
+          : isTSQualifiedName(node.typeName) &&
+          isIdentifier(node.typeName.left) &&
+          node.typeName.left.name === "Record") &&
+        node.typeParameters?.params[0].type === "TSStringKeyword" &&
+        node.typeParameters?.params[1].type === "TSUnknownKeyword"
     );
   }
 
   return typeAnnotation.type === "TSTypeReference" &&
-    typeAnnotation.typeName.name === "Record" &&
+    (isIdentifier(typeAnnotation.typeName)
+      ? typeAnnotation.typeName.name === "Record"
+      : isTSQualifiedName(typeAnnotation.typeName) &&
+      isIdentifier(typeAnnotation.typeName.left) &&
+      typeAnnotation.typeName.left.name === "Record") &&
     typeAnnotation.typeParameters?.params[0].type === "TSStringKeyword" &&
     typeAnnotation.typeParameters?.params[1].type === "TSUnknownKeyword";
 };
 
-const isComponentPropsFlexible = (
-  param: Identifier | Pattern | RestElement,
+const nestedTypeAnnotation = (
+  typeAnnotation: 
+    | TypeAnnotation 
+    | TSTypeAnnotation 
+    | Noop 
+    | null 
+    | undefined
+) =>
+  typeAnnotation && 
+  'typeAnnotation' in typeAnnotation
+    ? typeAnnotation.typeAnnotation
+    : null;
+
+const isPropsUsingFlexibleRecordType = (
+  param: 
+    | Identifier 
+    | Pattern 
+    | RestElement,
   propsDefinitions: string[]
 ) => {
-  const typeName = param?.typeAnnotation?.typeAnnotation.typeName?.name;
-  return typeName && propsDefinitions.includes(typeName);
+  const typeAnnotation = nestedTypeAnnotation(param.typeAnnotation);
+  
+  return (
+    typeAnnotation?.type === "TSTypeReference" && 
+    (
+      (isIdentifier(typeAnnotation.typeName) && 
+        propsDefinitions.includes(typeAnnotation.typeName.name)) ||
+      (isTSQualifiedName(typeAnnotation.typeName) && 
+        propsDefinitions.includes(typeAnnotation.typeName.right.name))
+    )
+  );
 }
 
-const usesPropsFlexibleDirectly = (param: Identifier | Pattern | RestElement) => {
-  const typeAnnotation = param?.typeAnnotation?.typeAnnotation;
-  return typeAnnotation && isFlexibleObject(typeAnnotation);
+const isPropsFlexibleInComponentDeclaration = (
+  param: 
+    | Identifier 
+    | Pattern 
+    | RestElement
+) => {
+  const typeAnnotation = nestedTypeAnnotation(param.typeAnnotation)
+
+  return (
+    typeAnnotation?.type === "TSIntersectionType" &&
+    typeAnnotation.types.some(
+      (node: TSType) => node.type === "TSTypeReference" && isFlexibleObject(node)
+    )
+  );
 }
 
 const checkComponentPropsUsage = (
@@ -38,8 +96,8 @@ const checkComponentPropsUsage = (
   components: SourceLocation[]
 ) => {
   if (
-    isComponentPropsFlexible(path.node.params[0], propsDefinitions) ||
-    usesPropsFlexibleDirectly(path.node.params[0])
+    isPropsUsingFlexibleRecordType(path.node.params[0], propsDefinitions) ||
+    isPropsFlexibleInComponentDeclaration(path.node.params[0])
   ) {
     components.push({
       start: path.node.loc?.start.line,
