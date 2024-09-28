@@ -16,52 +16,39 @@ import {
 } from "@babel/types";
 import { SourceLocation } from "../types";
 
-const isFlexibleObject = (typeAnnotation: TSType) => {
-  if (typeAnnotation.type === "TSIntersectionType") {
-    return typeAnnotation.types.some(
-      (node: TSType) =>
-        node.type === "TSTypeReference" &&
-        (isIdentifier(node.typeName)
-          ? node.typeName.name === "Record"
-          : isTSQualifiedName(node.typeName) &&
-          isIdentifier(node.typeName.left) &&
-          node.typeName.left.name === "Record") &&
-        node.typeParameters?.params[0].type === "TSStringKeyword" &&
-        node.typeParameters?.params[1].type === "TSUnknownKeyword"
-    );
-  }
+const usesUnknownRecordType = (node: TSType) => {
+  return (
+    node.type === "TSTypeReference" &&
+    (isIdentifier(node.typeName)
+      ? node.typeName.name === "Record"
+      : isTSQualifiedName(node.typeName) &&
+        isIdentifier(node.typeName.left) &&
+        node.typeName.left.name === "Record") &&
+    node.typeParameters?.params[0].type === "TSStringKeyword" &&
+    node.typeParameters.params[1].type === "TSUnknownKeyword"
+  );
+}
 
-  return typeAnnotation.type === "TSTypeReference" &&
-    (isIdentifier(typeAnnotation.typeName)
-      ? typeAnnotation.typeName.name === "Record"
-      : isTSQualifiedName(typeAnnotation.typeName) &&
-      isIdentifier(typeAnnotation.typeName.left) &&
-      typeAnnotation.typeName.left.name === "Record") &&
-    typeAnnotation.typeParameters?.params[0].type === "TSStringKeyword" &&
-    typeAnnotation.typeParameters?.params[1].type === "TSUnknownKeyword";
+const isFlexibleElement = (typeAnnotation: TSType) => {
+  return (
+    typeAnnotation.type === "TSIntersectionType" &&
+    typeAnnotation.types.some(usesUnknownRecordType)
+  ) || usesUnknownRecordType(typeAnnotation);
 };
 
 const nestedTypeAnnotation = (
-  typeAnnotation: 
-    | TypeAnnotation 
-    | TSTypeAnnotation 
-    | Noop 
-    | null 
-    | undefined
+  typeAnnotation: TypeAnnotation | TSTypeAnnotation | Noop | null | undefined
 ) =>
   typeAnnotation && 
   'typeAnnotation' in typeAnnotation
     ? typeAnnotation.typeAnnotation
     : null;
 
-const isPropsUsingFlexibleRecordType = (
-  param: 
-    | Identifier 
-    | Pattern 
-    | RestElement,
+const isComponentPropsDefitionFlexible = (
+  param: Identifier | Pattern | RestElement,
   propsDefinitions: string[]
 ) => {
-  const typeAnnotation = nestedTypeAnnotation(param.typeAnnotation);
+  const typeAnnotation = nestedTypeAnnotation(param?.typeAnnotation);
   
   return (
     typeAnnotation?.type === "TSTypeReference" && 
@@ -74,18 +61,15 @@ const isPropsUsingFlexibleRecordType = (
   );
 }
 
-const isPropsFlexibleInComponentDeclaration = (
-  param: 
-    | Identifier 
-    | Pattern 
-    | RestElement
+const isComponentInlinePropsFlexible = (
+  param: Identifier | Pattern | RestElement
 ) => {
-  const typeAnnotation = nestedTypeAnnotation(param.typeAnnotation)
+  const typeAnnotation = nestedTypeAnnotation(param?.typeAnnotation)
 
   return (
     typeAnnotation?.type === "TSIntersectionType" &&
     typeAnnotation.types.some(
-      (node: TSType) => node.type === "TSTypeReference" && isFlexibleObject(node)
+      (node: TSType) => node.type === "TSTypeReference" && isFlexibleElement(node)
     )
   );
 }
@@ -96,8 +80,8 @@ const checkComponentPropsUsage = (
   components: SourceLocation[]
 ) => {
   if (
-    isPropsUsingFlexibleRecordType(path.node.params[0], propsDefinitions) ||
-    isPropsFlexibleInComponentDeclaration(path.node.params[0])
+    isComponentPropsDefitionFlexible(path.node.params[0], propsDefinitions) ||
+    isComponentInlinePropsFlexible(path.node.params[0])
   ) {
     components.push({
       start: path.node.loc?.start.line,
@@ -112,7 +96,7 @@ export const overlyFlexibleProps = (ast: ParseResult<File>) => {
 
   traverse(ast, {
     TSTypeAliasDeclaration(path) {
-      if (isFlexibleObject(path.node.typeAnnotation)) {
+      if (isFlexibleElement(path.node.typeAnnotation)) {
         propsDefinitions.push(path.node.id.name);
       }
     },
