@@ -13,7 +13,7 @@ import { overlyFlexibleProps } from "./smells/overly-flexible-props";
 
 export type AnalysisOutput = {
   [key: string]: {
-    [K in keyof Analyzers]?: ReturnType<Analyzers[K]>;
+    [K in keyof Analyzers]: ReturnType<Analyzers[K]>;
   }
 }
 
@@ -27,10 +27,10 @@ export const analyzeFile = (file: TSXFile): AnalysisOutput => {
   const ast = parseAST(file);
   
   const analyzers: Analyzers = {
-    anyType,
-    enumImplicitValues,
     missingUnionTypeAbstraction,
     multipleBooleansForState,
+    anyType,
+    enumImplicitValues,
     nonNullAssertions,
     overlyFlexibleProps
   };
