@@ -13,7 +13,7 @@ export const enumImplicitValues = (ast: ParseResult<File>) => {
       if (!hasAllMembersWithConstants) {
         enums.push({
           start: path.node.loc?.start.line,
-          end: path.node.loc?.end.line
+          end: path.node.loc?.end.line,
         });
       }
     }

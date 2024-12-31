@@ -44,8 +44,8 @@ export const analyzeFile = (file: TSXFile): AnalysisOutput => {
 
 export const analyze = async (path: string) => {
   const analysis: AnalysisOutput[] = [];
-  
-  for await (const file of readFiles(path)) {
+
+  for (const file of await readFiles(path)) {
     analysis.push(analyzeFile(file));
   }
 
