@@ -11,7 +11,8 @@ export const anyType = (ast: ParseResult<File>) => {
       if (isTSAnyKeyword(path.node)) {
         any.push({
           start: path.node.loc?.start.line,
-          end: path.node.loc?.end.line
+          end: path.node.loc?.end.line,
+          filename: path.node.loc?.filename
         });
       }
     }
